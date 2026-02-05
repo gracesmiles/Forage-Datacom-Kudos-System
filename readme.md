@@ -1,0 +1,1 @@
+All AI specifications in SPECIFICATION.md

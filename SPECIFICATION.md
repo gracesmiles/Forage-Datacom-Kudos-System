@@ -1,0 +1,1 @@
+Modified Replit code to use clerk for user authorization and Neon Console to track users.
