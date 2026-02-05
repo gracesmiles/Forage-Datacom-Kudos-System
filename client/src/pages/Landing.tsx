@@ -1,21 +1,11 @@
-import { useEffect } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
+import { SignInButton } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star, Quote, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Landing() {
-  const { user, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    if (!isLoading && user) {
-      setLocation("/");
-    }
-  }, [user, isLoading, setLocation]);
-
-  if (isLoading) return null; // Or a loading spinner
+  // NOTE: We removed useAuth and useEffect because App.tsx 
+  // now handles the redirect logic using <SignedIn> and <SignedOut>
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-primary/20">
@@ -28,9 +18,11 @@ export default function Landing() {
             </div>
             <span>KudosBoard</span>
           </div>
-          <Button variant="ghost" onClick={() => window.location.href = "/api/login"}>
-            Log In
-          </Button>
+          
+          {/* UPDATED: Login Button */}
+          <SignInButton mode="modal">
+            <Button variant="ghost">Log In</Button>
+          </SignInButton>
         </div>
       </nav>
 
@@ -53,14 +45,18 @@ export default function Landing() {
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
                 Build a culture of appreciation. Share kudos with your colleagues and celebrate the wins, big and small.
               </p>
+              
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg" 
-                  className="h-14 px-8 text-lg rounded-xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all"
-                  onClick={() => window.location.href = "/api/login"}
-                >
-                  Get Started <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
+                {/* UPDATED: Get Started Button */}
+                <SignInButton mode="modal">
+                  <Button 
+                    size="lg" 
+                    className="h-14 px-8 text-lg rounded-xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all"
+                  >
+                    Get Started <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </SignInButton>
+                
                 <Button 
                   variant="outline" 
                   size="lg" 
@@ -88,10 +84,8 @@ export default function Landing() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="relative hidden lg:block"
             >
-              {/* Decorative blob */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-gradient-to-tr from-primary/20 to-purple-400/20 rounded-full blur-3xl -z-10" />
               
-              {/* office people high five celebration */}
               <div className="relative rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/10 rotate-2 hover:rotate-0 transition-transform duration-500">
                  <img 
                   src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80" 
@@ -106,20 +100,6 @@ export default function Landing() {
                     </p>
                   </div>
                 </div>
-              </div>
-              
-              {/* Floating Card */}
-              <div className="absolute -bottom-6 -left-6 bg-white p-5 rounded-xl shadow-xl max-w-xs animate-bounce" style={{ animationDuration: '3s' }}>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm">Kudos Sent!</p>
-                    <p className="text-xs text-muted-foreground">Just now</p>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600">Thanks for helping me with the Q3 report! 🚀</p>
               </div>
             </motion.div>
           </div>

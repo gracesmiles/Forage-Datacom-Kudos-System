@@ -108,7 +108,7 @@ export function CreateKudoDialog() {
                         ) : (
                           availableRecipients.map((user) => (
                             <SelectItem key={user.id} value={user.id}>
-                              {user.firstName ? `${user.firstName} ${user.lastName}` : user.username}
+                              {user.firstName ? `${user.firstName} ${user.lastName}` : user.email?.split('@')[0]}
                             </SelectItem>
                           ))
                         )}

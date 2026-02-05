@@ -6,6 +6,8 @@ import { Navigation } from "@/components/Navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Award, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+// Find your import from @/components/ui/card and make sure it looks like this:
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Home() {
   const { data: kudos, isLoading, isError } = useKudos();
@@ -27,7 +29,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               className="text-3xl md:text-4xl font-display font-bold text-foreground"
             >
-              Welcome back, {user?.firstName || user?.username}! 👋
+              Welcome back, {user?.firstName ? `${user?.firstName} ${user?.lastName}` : (user?.email?.split('@')[0] ?? "User")}! 👋
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, x: -20 }}

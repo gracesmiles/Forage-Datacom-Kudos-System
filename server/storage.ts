@@ -1,13 +1,11 @@
-import { users, kudos, type User, type InsertUser, type InsertKudo, type Kudo, type KudoWithUser } from "@shared/schema";
+import { users, kudos, type User, type UpsertUser, type InsertKudo, type Kudo, type KudoWithUser } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
-  createUser(user: InsertUser): Promise<User>;
-  
+  upsertUser(user: UpsertUser): Promise<User>; // Changed from createUser to upsertUser
   createKudo(kudo: InsertKudo): Promise<Kudo>;
   getKudos(): Promise<KudoWithUser[]>;
 }
@@ -18,19 +16,23 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    // Note: Replit Auth uses email/id, but for compatibility we might check other fields if needed.
-    // users table has firstName, lastName, email.
-    // This method might be less relevant with Replit Auth but keeping for interface compatibility if needed.
-    return undefined; 
-  }
-
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+  // This is vital for Clerk. If the user exists, update them; if not, create them.
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
     return user;
   }
 
@@ -40,14 +42,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getKudos(): Promise<KudoWithUser[]> {
-    const results = await db.query.kudos.findMany({
+    return await db.query.kudos.findMany({
       orderBy: [desc(kudos.createdAt)],
       with: {
         fromUser: true,
         toUser: true,
       },
     });
-    return results;
   }
 }
 
