@@ -12,43 +12,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // 1. Get Current User (Clerk version)
   app.get("/api/auth/user", async (req, res) => {
-    const { userId } = getAuth(req);
-    if (!userId) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
-    // Fetch user details from your Neon DB using the Clerk ID
-    const user = await storage.getUser(userId);
-    res.json(user || { id: userId, username: "Guest" });
-  });
-
-  // 2. List Kudos
-  app.get(api.kudos.list.path, async (req, res) => {
-    const kudos = await storage.getKudos();
-    res.json(kudos);
-  });
-
-  // 3. Create Kudo
-  app.post(api.kudos.create.path, async (req, res) => {
-    const { userId } = getAuth(req);
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
     try {
-      const input = api.kudos.create.input.parse(req.body);
-      
-      // Override fromUserId with the Clerk User ID for security
-      input.fromUserId = userId;
+      const { userId } = getAuth(req);
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
-      const kudo = await storage.createKudo(input);
-      res.status(201).json(kudo);
+      // We provide all common fields to prevent "NOT NULL" database errors
+      const user = await storage.upsertUser({
+        id: userId,
+        email: "user@example.com",
+        firstName: "New",
+        lastName: "User"
+      });
+
+      res.json(user);
     } catch (err) {
-      if (err instanceof z.ZodError) {
-        return res.status(400).json({ message: err.errors[0].message });
-      }
-      res.status(500).json({ message: "Internal Server Error" });
+      // Look at your TERMINAL (not browser) to see the exact DB error
+      console.error("DETAILED AUTH ERROR:", err); 
+      res.status(500).json({ message: "Internal server error" });
     }
   });
+
+  // 2. List Kudos (Updated to filter out hidden ones)
+app.get(api.kudos.list.path, async (req, res) => {
+  try {
+    const kudos = await storage.getKudos();
+    // Only return kudos that are NOT hidden
+    const visibleKudos = kudos.filter(k => !k.hidden);
+    res.json(visibleKudos);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load kudos feed" });
+  }
+});
+
+// 3. Create Kudo (Updated to handle Clerk IDs)
+app.post(api.kudos.create.path, async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const input = api.kudos.create.input.parse(req.body);
+    
+    // IMPORTANT: Make sure your storage.createKudo 
+    // can handle the Clerk string ID 'userId'
+    const kudo = await storage.createKudo({
+      ...input,
+      fromUserId: userId, // This is a string from Clerk
+      hidden: false
+    });
+    
+    res.status(201).json(kudo);
+  } catch (err) {
+    console.error("Create Kudo Error:", err);
+    res.status(400).json({ message: "Failed to create kudo" });
+  }
+});
 
   // 4. List all Users (for the dropdown/selection)
   app.get(api.users.list.path, async (req, res) => {

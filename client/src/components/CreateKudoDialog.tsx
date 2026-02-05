@@ -43,6 +43,8 @@ export function CreateKudoDialog() {
   });
 
   const onSubmit = (data: FormValues) => {
+    console.log("Button clicked! Data:", data); // Does this show up in your browser console?
+    
     if (!currentUser) return;
 
     createKudo.mutate(

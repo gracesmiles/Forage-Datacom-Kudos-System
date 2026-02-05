@@ -42,19 +42,17 @@ export class DatabaseStorage implements IStorage {
     return newKudo;
   }
 
-  async getKudos(): Promise<KudoWithUser[]> {
-    return await db.query.kudos.findMany({
-      where: eq(kudos.hidden, "false"),
-      orderBy: [desc(kudos.createdAt)],
-      with: {
-        fromUser: true,
-        toUser: true,
-      },
-    });
-  }
+  async getKudos() {
+  return await db.query.kudos.findMany({
+    with: {
+      fromUser: true,
+      toUser: true,
+    },
+  });
+}
 
   async hideKudo(id: number): Promise<void> {
-    await db.update(kudos).set({ hidden: "true" }).where(eq(kudos.id, id));
+    await db.update(kudos).set({ hidden: true }).where(eq(kudos.id, id));
   }
 }
 
