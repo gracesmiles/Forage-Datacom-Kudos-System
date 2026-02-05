@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api, type InsertKudo } from "@shared/routes";
+import { api } from "@shared/routes";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { InsertKudo } from "@shared/schema";
 
 // Define the expanded type for frontend usage based on schema relations
 export type KudoWithUser = {
@@ -41,20 +44,7 @@ export function useCreateKudo() {
   return useMutation({
     mutationFn: async (data: InsertKudo) => {
       const validated = api.kudos.create.input.parse(data);
-      const res = await fetch(api.kudos.create.path, {
-        method: api.kudos.create.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(validated),
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        if (res.status === 400) {
-          const error = api.kudos.create.responses[400].parse(await res.json());
-          throw new Error(error.message);
-        }
-        throw new Error("Failed to send kudos");
-      }
+      const res = await apiRequest(api.kudos.create.method, api.kudos.create.path, validated);
       return api.kudos.create.responses[201].parse(await res.json());
     },
     onSuccess: () => {

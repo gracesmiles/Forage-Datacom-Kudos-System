@@ -8,8 +8,8 @@ export function Navigation() {
   const { user, logout, isLoggingOut } = useAuth();
 
   const getInitials = (firstName?: string, lastName?: string) => {
-    if (!firstName && !lastName) return "ME";
-    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
+    if (!firstName && !lastName) return "U";
+    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "U";
   };
 
   if (!user) return null;
@@ -37,7 +37,7 @@ export function Navigation() {
             <div className="flex items-center gap-3 pl-6 border-l">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium leading-none">
-                  {user.firstName ? `${user.firstName} ${user.lastName}` : user.username}
+                  {user.firstName ? `${user.firstName} ${user.lastName}` : (user.email?.split('@')[0] ?? "User")}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {user.email}
@@ -46,7 +46,7 @@ export function Navigation() {
               <Avatar className="h-9 w-9 border ring-2 ring-primary/10">
                 <AvatarImage src={user.profileImageUrl || undefined} />
                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                  {getInitials(user.firstName, user.lastName)}
+                  {getInitials(user.firstName || undefined, user.lastName || undefined)}
                 </AvatarFallback>
               </Avatar>
               <Button 

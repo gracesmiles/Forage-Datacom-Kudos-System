@@ -56,6 +56,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(allUsers);
   });
 
+  // 5. Hide/Delete Kudo (Admin only)
+  app.post("/api/kudos/:id/hide", async (req, res) => {
+    const { userId } = getAuth(req);
+    // In a real app, we'd check if this userId has 'admin' role
+    // For this story, we'll allow any authenticated user to act as admin for testing
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const kudoId = parseInt(req.params.id);
+      await storage.hideKudo(kudoId);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to hide kudo" });
+    }
+  });
+
   // Run the seed to make sure you have people to give kudos to!
   await seedDatabase();
 

@@ -13,6 +13,7 @@ export const kudos = pgTable("kudos", {
   toUserId: text("to_user_id").notNull().references(() => users.id),
   message: text("message").notNull(),
   category: text("category").notNull(), // 'Teamwork', 'Innovation', 'Helpful', 'Other'
+  hidden: text("hidden").default("false"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

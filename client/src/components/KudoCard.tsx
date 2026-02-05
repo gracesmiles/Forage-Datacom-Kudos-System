@@ -3,8 +3,12 @@ import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Users, Lightbulb, HandHeart, Trophy } from "lucide-react";
+import { Heart, Users, Lightbulb, HandHeart, Trophy, EyeOff } from "lucide-react";
 import type { KudoWithUser } from "@/hooks/use-kudos";
+import { Button } from "@/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface KudoCardProps {
   kudo: KudoWithUser;
@@ -42,6 +46,18 @@ export function KudoCard({ kudo, index }: KudoCardProps) {
   const toName = kudo.toUser.firstName
     ? `${kudo.toUser.firstName} ${kudo.toUser.lastName}`.trim()
     : kudo.toUser.username;
+
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const hideMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", `/api/kudos/${kudo.id}/hide`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/kudos"] });
+      toast({ title: "Kudo hidden", description: "The kudo has been removed from the feed." });
+    },
+  });
 
   return (
     <motion.div
@@ -89,7 +105,17 @@ export function KudoCard({ kudo, index }: KudoCardProps) {
             </p>
           </div>
 
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-between items-center mt-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-muted-foreground hover:text-destructive h-8 px-2"
+              onClick={() => hideMutation.mutate()}
+              disabled={hideMutation.isPending}
+            >
+              <EyeOff className="w-4 h-4 mr-1" />
+              Hide
+            </Button>
             <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
               {formatDistanceToNow(new Date(kudo.createdAt), { addSuffix: true })}
             </span>

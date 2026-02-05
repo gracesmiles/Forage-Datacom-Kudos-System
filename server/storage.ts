@@ -8,6 +8,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>; // Changed from createUser to upsertUser
   createKudo(kudo: InsertKudo): Promise<Kudo>;
   getKudos(): Promise<KudoWithUser[]>;
+  hideKudo(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -43,12 +44,17 @@ export class DatabaseStorage implements IStorage {
 
   async getKudos(): Promise<KudoWithUser[]> {
     return await db.query.kudos.findMany({
+      where: eq(kudos.hidden, "false"),
       orderBy: [desc(kudos.createdAt)],
       with: {
         fromUser: true,
         toUser: true,
       },
     });
+  }
+
+  async hideKudo(id: number): Promise<void> {
+    await db.update(kudos).set({ hidden: "true" }).where(eq(kudos.id, id));
   }
 }
 
